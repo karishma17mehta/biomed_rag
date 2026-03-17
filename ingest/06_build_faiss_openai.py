@@ -31,7 +31,7 @@ INJECT_TAGS = False
 
 
 
-client = OpenAI(api_key=os.environ.get("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"))
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 def get_text(obj: Dict[str, Any]) -> str:
     return obj.get("text") or obj.get("chunk_text") or obj.get("content") or ""
