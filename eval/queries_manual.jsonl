@@ -1,0 +1,26 @@
+{"qid":"R01","persona":"R","expected_cancer":"Colon_Cancer","query":"Pathway cross-talk: How do MAPK and PI3K/AKT pathways interact in colon cancer progression?"}
+{"qid":"R02","persona":"R","expected_cancer":"Lung_Cancer","query":"Frequent mutations: Which gene mutations are most frequently reported in lung cancer?"}
+{"qid":"R03","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Targeted therapies: What targeted drugs are investigated for thyroid cancer and how do they work mechanistically?"}
+{"qid":"R04","persona":"R","expected_cancer":"Colon_Cancer","query":"Drug resistance: How do BRAF or KRAS mutations contribute to therapy resistance in colon cancer?"}
+{"qid":"R05","persona":"R","expected_cancer":"Lung_Cancer","query":"Trial phases: What phases of clinical trials (I/II/III) are represented in lung cancer studies?"}
+{"qid":"R06","persona":"R","expected_cancer":"Lung_Cancer","query":"In vivo models: What animal models are commonly used in lung cancer research?"}
+{"qid":"R07","persona":"R","expected_cancer":"Colon_Cancer","query":"Cell lines: Which in vitro cell lines are used to study colon cancer?"}
+{"qid":"R08","persona":"R","expected_cancer":"Lung_Cancer","query":"Genomic heterogeneity: How do genomic profiles vary among tumor samples within lung cancer?"}
+{"qid":"R09","persona":"R","expected_cancer":"Colon_Cancer","query":"Prognostic signatures: Are there gene-expression or multi-gene signatures proposed to predict prognosis in colon cancer?"}
+{"qid":"R10","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Multi-omics integration: Does any paper integrate genomic, transcriptomic or proteomic data for thyroid cancer, and what are the key findings?"}
+{"qid":"R11","persona":"R","expected_cancer":"Lung_Cancer","query":"Combination therapy: What combination treatments (e.g., chemotherapy + immunotherapy) are tested for lung cancer and how effective are they?"}
+{"qid":"R12","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Immune checkpoints: Which immune checkpoints (e.g., PD-1, CTLA-4) are targeted in thyroid cancer therapies?"}
+{"qid":"R13","persona":"R","expected_cancer":"Colon_Cancer","query":"Mechanisms of resistance: What molecular mechanisms of drug resistance are described in colon cancer?"}
+{"qid":"R14","persona":"R","expected_cancer":"Colon_Cancer","query":"Pharmacokinetics: Are there pharmacokinetic or pharmacodynamic studies of targeted therapy in colon cancer?"}
+{"qid":"R15","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Cost analysis: What cost-effectiveness studies exist for therapies in thyroid cancer?"}
+{"qid":"R16","persona":"R","expected_cancer":"Lung_Cancer","query":"Real-world evidence: Are there observational or real-world studies reported for lung cancer?"}
+{"qid":"R17","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Surgical outcomes: What surgical interventions are reported for thyroid cancer and what are their outcomes?"}
+{"qid":"R18","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Resistance reversal: What strategies are explored to overcome resistance to targeted therapies in thyroid cancer?"}
+
+{"qid":"M01","persona":"M","expected_cancer":"Colon_Cancer","query":"Molecular pathways: What signalling pathways are implicated in colon cancer progression?"}
+{"qid":"M02","persona":"M","expected_cancer":"Lung_Cancer","query":"Tumor microenvironment: How does the tumor microenvironment influence lung cancer progression?"}
+{"qid":"M03","persona":"M","expected_cancer":"Colon_Cancer","query":"Survival outcomes: What overall or disease-free survival rates are reported for colon cancer patients?"}
+{"qid":"M04","persona":"M","expected_cancer":"Colon_Cancer","query":"Diagnostic biomarkers: Which biomarkers are proposed for the diagnosis of colon cancer?"}
+{"qid":"M05","persona":"M","expected_cancer":"Thyroid_Cancer","query":"Diagnostic methods: What techniques are used for early detection of thyroid cancer?"}
+{"qid":"M06","persona":"M","expected_cancer":"Colon_Cancer","query":"Adverse effects: What adverse events are associated with immunotherapy or targeted therapy in colon cancer?"}
+{"qid":"M07","persona":"M","expected_cancer":"Colon_Cancer","query":"Microbiome influences: Do any papers mention the role of the microbiome in colon cancer progression or therapy response?"}

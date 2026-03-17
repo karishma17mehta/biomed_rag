@@ -1,0 +1,30 @@
+{"qid":"R01","persona":"R","expected_cancer":"Colon_Cancer","query":"How do KRAS mutations influence response to EGFR-targeted therapy in colorectal cancer?"}
+{"qid":"R02","persona":"R","expected_cancer":"Colon_Cancer","query":"What is the role of BRAF V600E mutations in colorectal tumor progression?"}
+{"qid":"R03","persona":"R","expected_cancer":"Colon_Cancer","query":"What molecular mechanisms drive resistance to MEK inhibitors in colorectal cancer?"}
+{"qid":"R04","persona":"R","expected_cancer":"Colon_Cancer","query":"Are there strategies described to overcome 5-FU resistance in colon cancer?"}
+{"qid":"R05","persona":"R","expected_cancer":"Colon_Cancer","query":"How does the PI3K/AKT pathway contribute to colorectal cancer progression?"}
+{"qid":"R06","persona":"R","expected_cancer":"Colon_Cancer","query":"What is the interaction between MAPK and Wnt signaling in colon cancer?"}
+{"qid":"R07","persona":"R","expected_cancer":"Colon_Cancer","query":"Why are microsatellite stable colorectal cancers less responsive to checkpoint blockade?"}
+{"qid":"R08","persona":"R","expected_cancer":"Colon_Cancer","query":"Which biomarkers are associated with poor prognosis in colorectal cancer?"}
+{"qid":"R09","persona":"R","expected_cancer":"Colon_Cancer","query":"Is CEA discussed as a predictive marker in colorectal cancer studies?"}
+{"qid":"R10","persona":"R","expected_cancer":"Colon_Cancer","query":"What in vitro or xenograft models are used to study colorectal cancer drug response?"}
+{"qid":"R11","persona":"R","expected_cancer":"Lung_Cancer","query":"How do EGFR mutations impact treatment outcomes in NSCLC?"}
+{"qid":"R12","persona":"R","expected_cancer":"Lung_Cancer","query":"What is the role of KRAS mutations in lung cancer therapy resistance?"}
+{"qid":"R13","persona":"R","expected_cancer":"Lung_Cancer","query":"What mechanisms contribute to acquired resistance to EGFR inhibitors in lung cancer?"}
+{"qid":"R14","persona":"R","expected_cancer":"Lung_Cancer","query":"What clinical evidence exists for MEK inhibitors in KRAS-mutant NSCLC?"}
+{"qid":"R15","persona":"R","expected_cancer":"Lung_Cancer","query":"Which immune checkpoints are targeted in lung cancer studies?"}
+{"qid":"R16","persona":"R","expected_cancer":"Lung_Cancer","query":"What adverse effects are associated with immunotherapy in lung cancer trials?"}
+{"qid":"R17","persona":"R","expected_cancer":"Lung_Cancer","query":"What survival outcomes are reported for advanced NSCLC patients?"}
+{"qid":"R18","persona":"R","expected_cancer":"Lung_Cancer","query":"What phases of clinical trials (I/II/III) are represented in lung cancer targeted therapy research?"}
+{"qid":"R19","persona":"R","expected_cancer":"Lung_Cancer","query":"Are there real-world observational studies in lung cancer treatment?"}
+{"qid":"R20","persona":"R","expected_cancer":"Lung_Cancer","query":"How do genomic alterations correlate with transcriptomic signatures in lung cancer?"}
+{"qid":"R21","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What is the role of BRAF mutations in papillary thyroid carcinoma?"}
+{"qid":"R22","persona":"R","expected_cancer":"Thyroid_Cancer","query":"How does RET activation contribute to thyroid cancer progression?"}
+{"qid":"R23","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What resistance mechanisms are described for lenvatinib in thyroid cancer?"}
+{"qid":"R24","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Are there strategies to overcome resistance to targeted therapies in thyroid carcinoma?"}
+{"qid":"R25","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What targeted drugs are evaluated in differentiated thyroid cancer?"}
+{"qid":"R26","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Which gene-expression signatures are associated with thyroid cancer survival?"}
+{"qid":"R27","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What factors predict recurrence in papillary thyroid carcinoma?"}
+{"qid":"R28","persona":"R","expected_cancer":"Thyroid_Cancer","query":"Are calcitonin or thyroglobulin used as prognostic biomarkers in thyroid cancer?"}
+{"qid":"R29","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What cell lines are commonly used in thyroid cancer research?"}
+{"qid":"R30","persona":"R","expected_cancer":"Thyroid_Cancer","query":"What endpoints are used in clinical trials for advanced thyroid cancer?"}

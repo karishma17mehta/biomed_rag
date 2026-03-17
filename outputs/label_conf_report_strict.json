@@ -1,0 +1,47 @@
+{
+  "Colon_Cancer": {
+    "total": 223,
+    "kept_highconf": 90,
+    "dropped_lowconf": 133,
+    "kept_pct": 40.35874439461883,
+    "top_drop_reasons": {
+      "no_site_signal_anywhere": 58,
+      "dominant_other_site": 31,
+      "no_cancer_signal_anywhere": 28,
+      "weak_colon_context": 7,
+      "negative_neuro_wrong_topic": 4,
+      "weak_site_presence": 3,
+      "weak_onco_context_no_proximity": 1,
+      "cross_site_mismatch": 1
+    }
+  },
+  "Lung_Cancer": {
+    "total": 387,
+    "kept_highconf": 323,
+    "dropped_lowconf": 64,
+    "kept_pct": 83.4625322997416,
+    "top_drop_reasons": {
+      "no_cancer_signal_anywhere": 25,
+      "no_site_signal_anywhere": 21,
+      "dominant_other_site": 11,
+      "weak_lung_context": 5,
+      "weak_onco_context_no_proximity": 2
+    }
+  },
+  "Thyroid_Cancer": {
+    "total": 274,
+    "kept_highconf": 71,
+    "dropped_lowconf": 203,
+    "kept_pct": 25.91240875912409,
+    "top_drop_reasons": {
+      "no_site_signal_anywhere": 79,
+      "dominant_other_site": 50,
+      "negative_filter_hit": 31,
+      "no_cancer_signal_anywhere": 23,
+      "weak_thyroid_context": 11,
+      "negative_neuro_wrong_topic": 5,
+      "cross_site_mismatch": 3,
+      "weak_site_presence": 1
+    }
+  }
+}

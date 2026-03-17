@@ -1,0 +1,35 @@
+{
+  "input_csv": "outputs/phase2_highconf_papers_strict.csv",
+  "total_docs": 484,
+  "total_chunks": 4061,
+  "avg_chunks_per_doc": 8.49581589958159,
+  "min_chunks_per_doc": 1,
+  "max_chunks_per_doc": 26,
+  "avg_chunk_tokens": 334.30558975621767,
+  "p50_chunk_tokens": 320.0,
+  "p90_chunk_tokens": 447.0,
+  "p99_chunk_tokens": 571.8000000000002,
+  "token_counter": "tiktoken(cl100k_base)",
+  "params": {
+    "TARGET_TOKENS": 320,
+    "OVERLAP_TOKENS": 80,
+    "MIN_PARA_TOKENS": 80,
+    "MAX_PARA_TOKENS": 450,
+    "SKIP_SECTIONS": [
+      "ACKNOWLEDGEMENTS",
+      "ACKNOWLEDGMENTS",
+      "AVAILABILITY OF DATA AND MATERIALS",
+      "COMPETING INTERESTS",
+      "CONFLICT OF INTEREST",
+      "CONSENT",
+      "CONSENT FOR PUBLICATION",
+      "DATA AVAILABILITY",
+      "FUNDING",
+      "PROVENANCE AND PEER REVIEW",
+      "SUPPLEMENTARY INFORMATION",
+      "SUPPLEMENTARY MATERIAL",
+      "TRIAL REGISTRATION"
+    ],
+    "TABLEISH_FILTERING": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "Colon_Cancer": {
+    "total": 2470,
+    "kept_highconf": 1700,
+    "dropped_lowconf": 770,
+    "kept_pct": 68.82591093117408
+  },
+  "Lung_Cancer": {
+    "total": 2085,
+    "kept_highconf": 1975,
+    "dropped_lowconf": 110,
+    "kept_pct": 94.7242206235012
+  },
+  "Thyroid_Cancer": {
+    "total": 2770,
+    "kept_highconf": 1840,
+    "dropped_lowconf": 930,
+    "kept_pct": 66.4259927797834
+  }
+}
