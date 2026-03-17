@@ -3,5 +3,4 @@ __pycache__/
 *.pyc
 .DS_Store
 data/biomedical.csv
-data/biomedical.csv
-data/biomedical.csv
+.venv/
