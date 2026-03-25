@@ -13,6 +13,7 @@ import pickle
 from app.query_router import infer_intent, extract_entities, section_bonus, extract_cancer_type
 from app.config import CFG
 
+
 # ── Config ────────────────────────────────────────────────────────────────────
 _R = CFG["retrieval"]
 _M = CFG["models"]
@@ -24,10 +25,16 @@ META_PATH  = Path(_P["meta_file"])
 BM25_PATH  = Path(_P["bm25_file"])
 MODEL      = _M["embedding"]
 
-api_key = os.environ.get("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("OPENAI_API_KEY is not set in environment.")
-client = OpenAI(api_key=api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is not set in environment.")
+        _client = OpenAI(api_key=api_key)
+    return _client
 
 
 from app.entities import (
@@ -60,7 +67,7 @@ def wants_citations(query: str, intent: str) -> bool:
     return bool(CITATION_QUERY_RE.search(query)) or intent == "citations"
 
 def embed_query(q: str) -> np.ndarray:
-    resp = client.embeddings.create(model=MODEL, input=[q])
+    resp = _get_client().embeddings.create(model=MODEL, input=[q])
     v = np.array(resp.data[0].embedding, dtype=np.float32)
     n = np.linalg.norm(v)
     return v if n == 0 else (v / n)
