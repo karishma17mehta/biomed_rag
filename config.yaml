@@ -1,0 +1,125 @@
+# config.yaml — Single source of truth for all tunable parameters
+# Load via: from app.config import CFG
+
+# ─────────────────────────────────────────────────────────────
+# Models
+# ─────────────────────────────────────────────────────────────
+models:
+  embedding: "text-embedding-3-large"
+  generator: "gpt-4o-mini"
+  generator_temperature: 0
+
+# ─────────────────────────────────────────────────────────────
+# Retrieval — retrieve_faiss.py
+# ─────────────────────────────────────────────────────────────
+retrieval:
+  # Candidate pool sizes
+  top_n_dense: 200
+  top_n_bm25: 200
+  top_k: 10
+  max_per_paper: 1
+  max_per_hash: 1
+
+  # BM25
+  bm25_div: 20.0
+  bm25_weight_no_entities: 0.10
+  bm25_weight_with_entities: 0.25
+
+  # Entity bonus (entity_bonus_score)
+  entity_bonus_per_hit: 0.03
+  entity_bonus_cap: 0.25
+
+  # Entity overlap rerank
+  rerank_weight: 0.18
+  rerank_min_entities: 2        # only apply when query has >=2 high-signal entities
+  req_hits_bonus_per_hit: 0.06
+  req_hits_bonus_cap: 0.25
+
+  # Cancer evidence adjust
+  cancer_generic_penalty: -0.10       # no cancer mention at all
+  cancer_present_per_hit: 0.10        # bonus per requested cancer hit
+  cancer_present_cap: 0.30
+  cancer_absent_strong_penalty: -0.60 # absent + other cancer has 2+ hits
+  cancer_absent_weak_penalty: -0.25   # absent + other cancer has 1 hit
+
+  # Cancer keyword mismatch penalty (cancer_keyword_mismatch_penalty)
+  mismatch_strong_penalty: 0.35       # other cancer has 4+ hits
+  mismatch_weak_penalty: 0.20         # other cancer has 2-3 hits
+
+  # Cancer must-mention gate (cancer_must_mention_gate)
+  must_strong_other_penalty: 0.60     # requested=0, anti>=2
+  must_weak_other_penalty: 0.30       # requested=0, anti==1
+  must_generic_penalty: 0.15          # requested=0, anti==0
+
+  # Reference penalties
+  reference_section_penalty: 0.12
+  reference_flag_penalty: 0.45
+
+# ─────────────────────────────────────────────────────────────
+# Chunking — ingest/04_chunk_papers.py
+# ─────────────────────────────────────────────────────────────
+chunking:
+  chunk_size_tokens: 320
+  chunk_overlap_tokens: 80
+  min_doc_words: 200
+
+# ─────────────────────────────────────────────────────────────
+# Agent — app/agent.py
+# ─────────────────────────────────────────────────────────────
+agent:
+  local_score_threshold: 0.55
+  local_min_hits: 2
+  pubmed_max_results: 6
+  pubmed_abstract_chars: 1200
+  primary_entity_min_len: 3
+
+# ─────────────────────────────────────────────────────────────
+# Generation / Evidence gating — eval/06_run_ragas.py
+# ─────────────────────────────────────────────────────────────
+generation:
+  max_contexts: 6
+  min_answer_sentences: 3
+  max_answer_sentences: 5
+
+  # score_context weights
+  entity_score_weight: 1.5
+  cancer_score_weight: 1.0
+  intent_score_weight: 1.5
+  entity_score_default: 0.4   # used when no entities in query
+  cancer_score_default: 0.5   # used when no cancer terms in query
+
+  # Clinical/preclinical adjustment
+  clinical_match_bonus: 0.7
+  clinical_mismatch_penalty: -0.7
+  clinical_unknown_penalty: -0.2
+
+  # AE adjustment
+  ae_match_bonus: 0.7
+  ae_mismatch_penalty: -0.4
+
+  # filter_contexts
+  context_filter_min_score: 1.6
+  context_filter_keep_k: 6
+  context_filter_fallback_k: 4
+
+  # Evidence pass gate
+  evidence_min_signals: 2
+
+# ─────────────────────────────────────────────────────────────
+# RAGAS Evaluation
+# ─────────────────────────────────────────────────────────────
+evaluation:
+  top_k: 6
+  model: "gpt-4o-mini"
+  run_file: "eval/runs/retrieval_run_ragas.jsonl"
+  out_file: "eval/runs/ragas_results.csv"
+
+# ─────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────
+paths:
+  index_dir: "outputs/index_openai"
+  faiss_index: "outputs/index_openai/faiss.index"
+  meta_file: "outputs/index_openai/meta_tagged_v2.jsonl"
+  bm25_file: "outputs/index_openai/bm25.pkl"
+  data_file: "data/biomedical.csv"

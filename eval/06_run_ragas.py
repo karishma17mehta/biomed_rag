@@ -14,6 +14,11 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 import re
 
+from app.config import CFG
+_G = CFG["generation"]
+_M = CFG["models"]
+_E = CFG["evaluation"]
+
 # -----------------------
 # JSONL helpers
 # -----------------------
@@ -35,7 +40,6 @@ def build_contexts(row: Dict[str, Any], top_k: int) -> List[str]:
             ctxs.append(t)
     return ctxs
 
-
 # -----------------------
 # Helpers
 # -----------------------
@@ -46,19 +50,6 @@ def _simple_entities_from_question(q: str) -> List[str]:
 
 def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").lower()).strip()
-
-def _extract_key_terms(question: str) -> List[str]:
-    q = question or ""
-    genes = re.findall(r"\b[A-Z0-9\-]{2,}\b", q)
-    genes = [g for g in genes if any(c.isalpha() for c in g)]
-    genes = list(dict.fromkeys(genes))[:10]
-    cancer_terms = []
-    ql = q.lower()
-    for t in ["colon", "colorectal", "crc", "rectal", "lung", "nsclc", "pulmonary",
-              "thyroid", "ptc", "ftc", "mtc", "atc"]:
-        if t in ql:
-            cancer_terms.append(t)
-    return genes + cancer_terms
 
 INTENT_TERMS = {
     "response":   ["response", "responder", "nonresponder", "efficacy", "benefit", "predict", "predictive"],
@@ -84,22 +75,17 @@ AE_TERMS = [
     "side effect", "dose reduction", "discontinuation",
 ]
 
-# ✅ ADDED: these two functions were called but never defined
 def question_requires_ae(question: str) -> bool:
-    """Returns True if the question is specifically about adverse effects / toxicity."""
     q = _norm(question)
-    ae_keywords = [
+    return any(k in q for k in [
         "adverse", "adverse effect", "adverse event", "toxicity", "toxic",
         "side effect", "safety", "immune-related", "irae", "pneumonitis",
         "colitis", "hepatitis", "rash", "endocrine", "nephritis", "dose reduction",
-    ]
-    return any(k in q for k in ae_keywords)
+    ])
 
 def has_ae_signal(contexts: List[str]) -> bool:
-    """Returns True if at least one context contains AE-related language."""
     blob = _norm("\n\n".join(contexts))
     return any(t in blob for t in AE_TERMS)
-
 
 def _infer_intent_terms(question: str) -> List[str]:
     q = (question or "").lower()
@@ -153,12 +139,10 @@ def _infer_cancer_terms(question: str) -> List[str]:
     return []
 
 def _needs_clinical(question: str) -> bool:
-    q = _norm(question)
-    return any(k in q for k in ["clinical", "trial", "phase", "patients", "cohort", "randomized"])
+    return any(k in _norm(question) for k in ["clinical", "trial", "phase", "patients", "cohort", "randomized"])
 
 def _needs_ae(question: str) -> bool:
-    q = _norm(question)
-    return any(k in q for k in ["adverse", "side effect", "toxicity", "safety"])
+    return any(k in _norm(question) for k in ["adverse", "side effect", "toxicity", "safety"])
 
 def _count_term_hits(blob: str, terms: List[str]) -> int:
     hits = 0
@@ -192,23 +176,32 @@ def score_context(question: str, ctx: str) -> Tuple[float, Dict]:
     can_hits = _count_term_hits(blob, cancer_terms) if cancer_terms else 0
     int_hits = _count_term_hits(blob, intent_terms)
 
-    ent_score = (ent_hits / max(1, min(len(entities),     6))) if entities     else 0.4
-    can_score = (can_hits / max(1, min(len(cancer_terms), 4))) if cancer_terms else 0.5
+    ent_score = (ent_hits / max(1, min(len(entities),     6))) if entities     else _G["entity_score_default"]
+    can_score = (can_hits / max(1, min(len(cancer_terms), 4))) if cancer_terms else _G["cancer_score_default"]
     int_score = (int_hits / max(1, min(len(intent_terms), 6)))
 
     need_clin = _needs_clinical(question)
     etype     = _evidence_type(blob)
     clin_adj  = 0.0
     if need_clin:
-        clin_adj = +0.7 if etype == "clinical" else (-0.7 if etype == "preclinical" else -0.2)
+        if etype == "clinical":
+            clin_adj = _G["clinical_match_bonus"]
+        elif etype == "preclinical":
+            clin_adj = _G["clinical_mismatch_penalty"]
+        else:
+            clin_adj = _G["clinical_unknown_penalty"]
 
     ae_adj = 0.0
     if _needs_ae(question):
-        ae_adj = +0.7 if any(t in blob for t in AE_TERMS) else -0.4
+        ae_adj = _G["ae_match_bonus"] if any(t in blob for t in AE_TERMS) else _G["ae_mismatch_penalty"]
 
-    score = 1.5 * ent_score + 1.0 * can_score + 1.5 * int_score + clin_adj + ae_adj
-
-    dbg = {
+    score = (
+        _G["entity_score_weight"] * ent_score +
+        _G["cancer_score_weight"] * can_score +
+        _G["intent_score_weight"] * int_score +
+        clin_adj + ae_adj
+    )
+    return score, {
         "entities": entities[:6], "intent_family": intent_fam,
         "need_clinical": need_clin, "evidence_type": etype,
         "need_ae": _needs_ae(question),
@@ -217,23 +210,15 @@ def score_context(question: str, ctx: str) -> Tuple[float, Dict]:
         "int_score": round(int_score, 3), "clin_adj": clin_adj,
         "ae_adj": ae_adj, "total": round(score, 3),
     }
-    return score, dbg
 
-def filter_contexts(
-    question: str,
-    contexts: List[str],
-    keep_k: int = 6,
-    min_score: float = 1.6,
-    fallback_k: int = 4,
-    debug: bool = False,
-) -> List[str]:
+def filter_contexts(question: str, contexts: List[str]) -> List[str]:
     if not contexts:
         return []
     scored = [(score_context(question, c)[0], c) for c in contexts]
     scored.sort(key=lambda x: x[0], reverse=True)
-    kept = [c for (s, c) in scored if s >= min_score][:keep_k]
+    kept = [c for (s, c) in scored if s >= _G["context_filter_min_score"]][:_G["context_filter_keep_k"]]
     if not kept:
-        kept = [c for (_, c) in scored[:fallback_k]]
+        kept = [c for (_, c) in scored[:_G["context_filter_fallback_k"]]]
     return kept
 
 def _evidence_pass(question: str, contexts: List[str]) -> Tuple[bool, Dict]:
@@ -242,7 +227,7 @@ def _evidence_pass(question: str, contexts: List[str]) -> Tuple[bool, Dict]:
     q_terms_intent   = _infer_intent_terms(question)
     blob = _norm("\n\n".join(contexts))
 
-    def any_hit(terms: List[str]) -> bool:
+    def any_hit(terms):
         for t in terms:
             tl = t.lower()
             if tl.isalpha():
@@ -257,20 +242,13 @@ def _evidence_pass(question: str, contexts: List[str]) -> Tuple[bool, Dict]:
     cancer_ok = any_hit(q_terms_cancer)   if q_terms_cancer   else True
     intent_ok = any_hit(q_terms_intent)
 
-    signals  = 0
-    signals += 1 if entity_ok else 0
-    signals += 1 if (cancer_ok if q_terms_cancer else True) else 0
-    signals += 1 if intent_ok else 0
-
-    has_evidence = signals >= 2
-    dbg = {
+    signals  = sum([entity_ok, (cancer_ok if q_terms_cancer else True), intent_ok])
+    has_evidence = signals >= _G["evidence_min_signals"]
+    return has_evidence, {
         "entities": q_terms_entities, "cancer_terms": q_terms_cancer,
         "intent_terms": q_terms_intent[:10], "entity_ok": entity_ok,
         "cancer_ok": cancer_ok, "intent_ok": intent_ok, "signals": signals,
     }
-
-    return has_evidence, dbg
-
 
 
 # -----------------------
@@ -280,105 +258,64 @@ def generate_grounded_answer(
     chat_llm: ChatOpenAI,
     question: str,
     contexts: List[str],
-    max_ctx: int = 6,
     debug: bool = False,
 ) -> str:
-    ctxs = (contexts or [])[:max_ctx]
+    ctxs = (contexts or [])[:_G["max_contexts"]]
     if not ctxs:
         return "Insufficient context: no retrieved passages were provided."
 
-    # AE gate — requires AE signal in contexts
     if question_requires_ae(question) and not has_ae_signal(ctxs):
         joined = "\n\n".join([f"[CTX {i+1}]\n{c}" for i, c in enumerate(ctxs)])
-        prompt = f"""You are a biomedical assistant.
+        prompt = f"""You are a biomedical assistant. Use ONLY the contexts.
+The question asks about adverse effects/toxicity.
+Write ONE sentence. If AE not described, say so explicitly. End with citations.
+QUESTION: {question}\nCONTEXTS:\n{joined}\nOne-sentence answer:"""
+        return (chat_llm.invoke(prompt).content or "").strip()
 
-Use ONLY the contexts.
-The question asks about adverse effects/toxicity, but the contexts may not include safety/adverse-event reporting.
-
-Write ONE sentence:
-- If adverse effects are not described, say that explicitly.
-- End with citations.
-
-QUESTION:
-{question}
-
-CONTEXTS:
-{joined}
-
-One-sentence answer:"""
-        resp = chat_llm.invoke(prompt)
-        return (resp.content or "").strip()
-
-    # Evidence gate
     has_evidence, ev = _evidence_pass(question, ctxs)
-    if debug:
-        print("EVIDENCE_PASS:", has_evidence, ev)
-
     if not has_evidence:
-        missing_bits = []
-        if not ev.get("entity_ok", True):
-            missing_bits.append("the key entity/entities from the question")
-        if ev.get("cancer_terms") and not ev.get("cancer_ok", True):
-            missing_bits.append("the expected cancer context")
-        if not ev.get("intent_ok", True):
-            missing_bits.append("the key outcome/intent (e.g., response/resistance/survival)")
-        miss = "; ".join(missing_bits) if missing_bits else "the key information needed"
+        missing = []
+        if not ev.get("entity_ok", True):     missing.append("the key entity/entities")
+        if ev.get("cancer_terms") and not ev.get("cancer_ok", True): missing.append("the expected cancer context")
+        if not ev.get("intent_ok", True):     missing.append("the key outcome/intent")
+        miss = "; ".join(missing) if missing else "the key information needed"
         return f"Insufficient context: the retrieved passages do not contain {miss}."
-    
-    # ✅ ADD THIS BLOCK HERE — primary entity check
+
     primary_entities = _extract_entities(question)
     if primary_entities:
         primary = primary_entities[0]
         if not any(primary.lower() in c.lower() for c in ctxs):
-            return f"Insufficient context: retrieved passages do not contain specific information about {primary} for this query."
+            return f"Insufficient context: retrieved passages do not contain specific information about {primary}."
 
-    # Clinical vs preclinical mismatch
-    ql = (question or "").lower()
-    wants_clinical = any(k in ql for k in ["clinical", "phase", "trial", "patients", "cohort", "randomized"])
+    ql    = (question or "").lower()
     etype = evidence_type(ctxs)
     joined = "\n\n".join([f"[CTX {i+1}]\n{c}" for i, c in enumerate(ctxs)])
+    wants_clinical = any(k in ql for k in ["clinical", "phase", "trial", "patients", "cohort", "randomized"])
 
     if wants_clinical and etype == "preclinical":
-        prompt = f"""You are a biomedical assistant.
+        prompt = f"""You are a biomedical assistant. Use ONLY the provided contexts.
+Question asks for CLINICAL evidence but contexts appear PRECLINICAL.
+Write 2 sentences: 1) summarize preclinical evidence with citation. 2) state clinical data not present.
+QUESTION: {question}\nCONTEXTS:\n{joined}\n2-sentence answer:"""
+        return (chat_llm.invoke(prompt).content or "").strip()
 
-RULES:
-- Use ONLY the provided contexts.
-- The question asks for CLINICAL evidence, but the contexts appear PRECLINICAL.
-- Write 2 sentences:
-  1) State that only preclinical evidence is present and summarize what it shows.
-  2) State that clinical trial outcomes are not provided in these contexts.
-- Every sentence must end with citations.
-
-QUESTION:
-{question}
-
-CONTEXTS:
-{joined}
-
-Write the 2-sentence answer:"""
-        resp = chat_llm.invoke(prompt)
-        return (resp.content or "").strip()
-
-    # Default strict grounded answer
     prompt = f"""You are a biomedical assistant answering with retrieval.
 
 HARD RULES:
 - Use ONLY the provided contexts. No outside knowledge.
-- Output 3 to 5 sentences.
+- Output {_G["min_answer_sentences"]} to {_G["max_answer_sentences"]} sentences.
 - Each sentence MUST end with citations like [CTX 1] or [CTX 2][CTX 4].
 - Answer the question directly first, then support with evidence.
-- Do NOT speculate or use phrases like "generally" or "it is known that" without a citation.
+- Do NOT speculate or use phrases like "generally" without a citation.
 
-QUESTION:
-{question}
+QUESTION: {question}
 
 CONTEXTS:
 {joined}
 
 Write the answer now:"""
 
-    resp = chat_llm.invoke(prompt)
-    return (resp.content or "").strip()
+    return (chat_llm.invoke(prompt).content or "").strip()
 
 
 # -----------------------
@@ -397,22 +334,20 @@ def get_metrics(llm, embeddings):
 # -----------------------
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--run", default="eval/runs/retrieval_run_ragas.jsonl")
-    ap.add_argument("--top_k", type=int, default=6)
-    ap.add_argument("--out", default="eval/runs/ragas_results.csv")
-    ap.add_argument("--model", default="gpt-4o-mini")
+    ap.add_argument("--run",   default=_E["run_file"])
+    ap.add_argument("--top_k", type=int, default=_E["top_k"])
+    ap.add_argument("--out",   default=_E["out_file"])
+    ap.add_argument("--model", default=_E["model"])
     args = ap.parse_args()
 
     rows = load_jsonl(Path(args.run))
 
     import os
-    api_key = os.environ["OPENAI_API_KEY"]
-    chat_llm         = ChatOpenAI(model=args.model, temperature=0, api_key=api_key)
-    embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large", api_key=api_key)
-    from openai import OpenAI
-    openai_client    = OpenAI(api_key=api_key)
-    ragas_llm = LangchainLLMWrapper(chat_llm)
-    ragas_emb = LangchainEmbeddingsWrapper(embeddings_model)
+    api_key          = os.environ["OPENAI_API_KEY"]
+    chat_llm         = ChatOpenAI(model=args.model, temperature=_M["generator_temperature"], api_key=api_key)
+    embeddings_model = OpenAIEmbeddings(model=_M["embedding"], api_key=api_key)
+    ragas_llm        = LangchainLLMWrapper(chat_llm)
+    ragas_emb        = LangchainEmbeddingsWrapper(embeddings_model)
 
     print(f"Building dataset for {len(rows)} queries...")
     data = []
@@ -429,14 +364,9 @@ def main():
     metrics = get_metrics(llm=ragas_llm, embeddings=ragas_emb)
 
     print("\nStarting Ragas evaluation...")
-    result = evaluate(
-        dataset=dataset,
-        metrics=metrics,
-        llm=ragas_llm,
-        embeddings=ragas_emb
-    )
+    result = evaluate(dataset=dataset, metrics=metrics, llm=ragas_llm, embeddings=ragas_emb)
 
-    df = result.to_pandas()
+    df       = result.to_pandas()
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
