@@ -1,93 +1,10 @@
 import re
 from typing import Dict, List
 
-# -----------------------
-# ENTITY EXTRACTION
-# -----------------------
-
-# High-signal clinical endpoints + stats
-ENDPOINT_PAT = re.compile(
-    r"\b(OS|PFS|DFS|RFS|ORR|DCR|HR|CI|AUC|Cmax|Tmax|t1/2|half-?life|PK|PD|ICER|QALY)\b",
-    re.IGNORECASE
+from app.entities import (
+    CHECKPOINT_PAT, PATHWAY_PAT, DRUG_PAT, GENE_PAT, GENE_STOP,
+    CANCER_PATTERNS, extract_entities, extract_cancer_type,
 )
-
-# Immune checkpoints
-CHECKPOINT_PAT = re.compile(
-    r"\b(PD-?1|PD-?L1|CTLA-?4|LAG-?3|TIM-?3|TIGIT)\b",
-    re.IGNORECASE
-)
-
-# Pathways
-PATHWAY_PAT = re.compile(
-    r"\b(MAPK|PI3K/?AKT|AKT|mTOR|WNT|TGF-?β|TGF-?B|JAK/?STAT|NF-?κB|NF-?KB)\b",
-    re.IGNORECASE
-)
-
-# Drugs: tuned to what appears a lot in your corpus (-nib/-mab/-platin/-taxel/-parib/-ciclib, etc.)
-DRUG_PAT = re.compile(
-    r"\b[a-zA-Z][a-zA-Z\-]{3,40}"
-    r"(?:nib|tinib|mab|zumab|ximab|umab|cept|parib|ciclib|platin|taxel|cycline)\b",
-    re.IGNORECASE
-)
-
-# Cell lines & common model IDs: A549, H1975, HCC827, NCI-H460, etc.
-CELL_LINE_PAT = re.compile(
-    r"\b(?:[A-Z]\d{3,5}|H\d{3,5}|HCC\d{3,5}|NCI-?H\d{2,4}|PC-?9)\b",
-    re.IGNORECASE
-)
-
-# Diagnostics / lab methods (very common in your corpus)
-DIAG_PAT = re.compile(
-    r"\b(IHC|FISH|PCR|qPCR|ELISA|NGS|WES|RNA-?seq|microarray|immunohistochem)\b",
-    re.IGNORECASE
-)
-
-# Imaging
-IMAGING_PAT = re.compile(
-    r"\b(PET/?CT|CT|MRI|DWI|FDG|SUV|max)\b",
-    re.IGNORECASE
-)
-
-# Gene-ish symbols: MUST start with a letter, contain a letter, length 2-10, allow digits
-# Excludes pure numbers + roman numerals later via stoplist
-
-GENE_STOP = {
-    # stats/common noise
-    "CI","SD","SE","NS","NA","USA","BMC","AJCC","WHO","SEER",
-    # imaging/common
-    "CT","MRI","PET","FDG","SUV",
-    # section-ish/common
-    "FIG","TABLE","SUPP","ETAL",
-    # roman numerals / phases noise
-    "I","II","III","IV","V","VI",
-    # generic bio noise
-    "DNA","RNA","MRNA",
-}
-
-GENE_PAT = re.compile(r"\b[A-Z]{2,}[A-Z0-9]{0,8}\b")
-
-def extract_entities(query: str) -> List[str]:
-    q = query or ""
-    ents = []
-
-    # High precision buckets
-    ents += [m.upper() for m in ENDPOINT_PAT.findall(q)]
-    ents += [m.upper() for m in CHECKPOINT_PAT.findall(q)]
-    ents += [m.upper() for m in PATHWAY_PAT.findall(q)]
-    ents += [m.lower() for m in DRUG_PAT.findall(q)]
-    ents += [m.upper() for m in CELL_LINE_PAT.findall(q)]
-    ents += [m.upper() for m in DIAG_PAT.findall(q)]
-    ents += [m.upper() for m in IMAGING_PAT.findall(q)]
-
-    # Gene symbols (do NOT uppercase whole query)
-    for g in GENE_PAT.findall(q):
-        if g in GENE_STOP:
-            continue
-        if re.fullmatch(r"\d+", g):
-            continue
-        ents.append(g)
-
-    return sorted(set(ents))
 
 # -----------------------
 # INTENT ROUTING
@@ -151,32 +68,6 @@ SECTION_PENALTY = {
     "ABSTRACT": -0.05,
 }
 
-CANCER_PATTERNS = {
-    "Thyroid_Cancer": [
-        r"\bthyroid cancer\b",
-        r"\bthyroid carcinoma\b",
-        r"\bpapillary thyroid\b",
-        r"\bfollicular thyroid\b",
-        r"\bmedullary thyroid\b",
-        r"\banaplastic thyroid\b",
-        r"\bptc\b", r"\bftc\b", r"\bmtc\b", r"\batc\b",
-    ],
-    "Lung_Cancer": [
-        r"\blung cancer\b",
-        r"\bnsclc\b",
-        r"\bsclc\b",
-        r"\blung carcinoma\b",
-        r"\badenocarcinoma of the lung\b",
-        r"\bsquamous cell lung\b",
-    ],
-    "Colon_Cancer": [
-        r"\bcolon cancer\b",
-        r"\bcolorectal cancer\b",
-        r"\brectal cancer\b",
-        r"\bcrc\b",
-        r"\bmcrc\b",
-    ],
-}
 
 def infer_intent(query: str) -> str:
     q = (query or "").lower()

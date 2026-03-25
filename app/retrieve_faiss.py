@@ -30,49 +30,10 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Cancer term dictionaries
-# ─────────────────────────────────────────────────────────────────────────────
-CANCER_TERMS = {
-    "Colon_Cancer": {
-        "must": [
-            "colorectal", "colon", "rectal", "rectum",
-            "crc", "mcrc", "sigmoid", "cecum", "caecum",
-            "large intestine", "bowel",
-        ],
-        "anti": [
-            "thyroid", "papillary thyroid", "follicular thyroid", "medullary thyroid",
-            "nsclc", "sclc", "non-small cell lung", "small cell lung", "pulmonary",
-        ],
-    },
-    "Lung_Cancer": {
-        "must": [
-            "lung", "pulmonary", "nsclc", "sclc",
-            "non-small cell", "small cell",
-            "lung adenocarcinoma", "squamous cell lung",
-        ],
-        "anti": [
-            "thyroid", "papillary thyroid", "follicular thyroid", "medullary thyroid",
-            "colon", "colorectal", "rectal", "crc",
-        ],
-    },
-    "Thyroid_Cancer": {
-        "must": [
-            "thyroid", "papillary thyroid", "follicular thyroid",
-            "medullary thyroid", "anaplastic thyroid", "differentiated thyroid",
-            "ptc", "ftc", "mtc", "atc", "dtc",
-            "thyroid cancer", "thyroid carcinoma",
-            "papillary thyroid carcinoma", "follicular thyroid carcinoma",
-            "medullary thyroid carcinoma", "anaplastic thyroid carcinoma",
-            "calcitonin", "thyroglobulin", "tsh",
-            "ret proto-oncogene", "thyroidectomy",
-        ],
-        "anti": [
-            "nsclc", "sclc", "lung", "pulmonary",
-            "colon", "colorectal", "rectal", "crc",
-        ],
-    },
-}
+from app.entities import (
+    CHECKPOINT_PAT, PATHWAY_PAT, DRUG_PAT, GENE_PAT, GENE_STOP,
+    CANCER_TERMS, CANCER_KEYWORDS, extract_highsignal_entities,
+)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -140,11 +101,6 @@ def dedupe_and_diversify(
         kept.append(c)
     return kept
 
-CANCER_KEYWORDS = {
-    "Thyroid_Cancer": ["thyroid", "papillary", "follicular", "medullary", "anaplastic"],
-    "Colon_Cancer":   ["colon", "colorectal", "crc", "rectal"],
-    "Lung_Cancer":    ["lung", "nsclc", "sclc", "adenocarcinoma", "squamous"],
-}
 
 def cancer_keyword_mismatch_penalty(requested: str, body: str) -> float:
     if not requested or not body:
@@ -207,34 +163,6 @@ def cancer_must_mention_gate(requested: str, body: str) -> Tuple[bool, float, st
 # ─────────────────────────────────────────────────────────────────────────────
 # High-signal entity extraction
 # ─────────────────────────────────────────────────────────────────────────────
-CHECKPOINT_PAT = re.compile(r"\b(PD-?1|PD-?L1|CTLA-?4|LAG-?3|TIM-?3|TIGIT)\b", re.IGNORECASE)
-PATHWAY_PAT    = re.compile(r"\b(MAPK|PI3K/?AKT|AKT|mTOR|WNT|TGF-?β|TGF-?B|JAK/?STAT|NF-?κB|NF-?KB)\b", re.IGNORECASE)
-DRUG_PAT       = re.compile(
-    r"\b[a-zA-Z][a-zA-Z\-]{3,40}"
-    r"(?:nib|tinib|mab|zumab|ximab|umab|cept|parib|ciclib|platin|taxel|cycline)\b",
-    re.IGNORECASE,
-)
-GENE_PAT  = re.compile(r"\b[A-Z]{2,}[A-Z0-9]{0,8}\b")
-GENE_STOP = {
-    "CI","SD","SE","NS","NA","USA","BMC","AJCC","WHO","SEER",
-    "DNA","RNA","MRNA","FIG","TABLE","SUPP","ETAL",
-    "I","II","III","IV","V","VI",
-    "CT","MRI","PET","FDG","SUV",
-    "OS","PFS","DFS","RFS","ORR","DCR","HR","PK","PD","AUC",
-}
-
-def extract_highsignal_entities(text: str) -> List[str]:
-    if not text:
-        return []
-    ents: List[str] = []
-    ents += [m.upper() for m in CHECKPOINT_PAT.findall(text)]
-    ents += [m.upper() for m in PATHWAY_PAT.findall(text)]
-    ents += [m.lower() for m in DRUG_PAT.findall(text)]
-    for g in GENE_PAT.findall(text):
-        if g in GENE_STOP or re.fullmatch(r"\d+", g) or len(g) < 2:
-            continue
-        ents.append(g)
-    return sorted(set(ents))
 
 def normalize_for_match(s: str) -> str:
     s = (s or "").lower()
