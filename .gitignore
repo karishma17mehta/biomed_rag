@@ -4,3 +4,15 @@ __pycache__/
 .DS_Store
 data/biomedical.csv
 .venv/
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Mac
+.DS_Store
+
+# Env
+.env
+.venv/
+.venv-1/

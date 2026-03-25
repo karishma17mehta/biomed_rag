@@ -443,6 +443,7 @@ def retrieve(
     # dynamic BM25 weight (more when entity-like query)
     bm25_weight = 0.25 if entities else 0.10
 
+
     # -------------------------
     # Candidate pool
     # -------------------------

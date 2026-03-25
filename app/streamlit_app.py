@@ -274,18 +274,27 @@ RAGAS_CSV = Path("eval/runs/ragas_results.csv")
 
 
 def generate_answer(llm, question: str, contexts: list) -> str:
-    """Grounded answer using retrieved contexts."""
+    if not contexts:
+        return "Insufficient context: no passages were retrieved."
+
     ctx_block = "\n\n".join([f"[CTX {i+1}]\n{c}" for i, c in enumerate(contexts[:6])])
-    prompt = f"""You are a biomedical assistant.
-Use ONLY the provided contexts. Each claim must be supported.
-If contexts lack evidence, say so explicitly.
+
+    prompt = f"""You are a biomedical research assistant. Your ONLY job is to answer using the provided contexts.
+
+STRICT RULES:
+1. Use ONLY information from the contexts below. Never use outside knowledge.
+2. Every sentence MUST end with a citation [CTX N].
+3. If the contexts do not contain enough information to answer, say exactly: "Insufficient evidence in provided contexts to answer this question."
+4. Do not speculate, infer, or generalize beyond what is explicitly stated.
+5. Answer in 3-4 sentences maximum.
 
 QUESTION: {question}
 
 CONTEXTS:
 {ctx_block}
 
-Write a concise, grounded answer (3-5 sentences). End each claim with a citation like [CTX 1]."""
+Answer (each sentence must have a citation):"""
+
     return llm.invoke(prompt).content.strip()
 
 
@@ -378,6 +387,16 @@ with tab1:
                         score = src.get("score", 0)
                         section = src.get("section", "—")
                         paper = src.get("paper_id", "—")
+                        # show source badge
+                        badge = msg.get("source_badge", "🗂 Local Index")
+                        st.caption(badge)
+
+                        # show PubMed sources if any
+                        if msg.get("pubmed"):
+                            with st.expander(f"🌐 {len(msg['pubmed'])} PubMed abstracts used"):
+                                for a in msg["pubmed"]:
+                                    st.markdown(f"**{a['title']}** ({a['year']}) — PMID:{a['pmid']}")
+                                    st.caption(a["abstract"][:300] + "...")
                         text_preview = (src.get("text") or "")[:350].replace("\n", " ")
                         st.markdown(
                             f"<div class='source-card'>"
@@ -404,25 +423,32 @@ with tab1:
     with col_btn:
         send = st.button("Ask →", use_container_width=True)
 
-    if (send or user_input) and user_input.strip():
+    if send and user_input.strip():
         question = user_input.strip()
         st.session_state.messages.append({"role": "user", "content": question})
 
         with st.spinner("Retrieving and generating answer…"):
             try:
-                retrieve = load_retriever()
-                llm = load_generator()
+                    import sys, os
+                    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                    from app.agent import run_agent
+                    result     = run_agent(question)
+                    answer     = result["answer"]
+                    hits       = result["local_chunks"]
+                    pubmed     = result["pubmed_articles"]
+                    used_pubmed = result["used_pubmed"]
 
-                hits = retrieve(question, top_k=top_k, max_per_paper=1, max_per_hash=1)
-                contexts = [(h.get("text") or "")[:1500] for h in hits if h.get("text")]
+                    # badge showing source
+                    source_badge = "🌐 PubMed + Local" if used_pubmed else "🗂 Local Index"
 
-                answer = generate_answer(llm, question, contexts)
-
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer,
-                    "sources": hits
-                })
+                    st.session_state.messages.append({
+                        "role":           "assistant",
+                        "content":        answer,
+                        "sources":        hits,
+                        "pubmed":         pubmed,
+                        "used_pubmed":    used_pubmed,
+                        "source_badge":   source_badge,
+                    })
 
             except Exception as e:
                 st.session_state.messages.append({
