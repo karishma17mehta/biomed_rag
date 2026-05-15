@@ -1,0 +1,27 @@
+# Fine-tuning dependencies — install BEFORE the main requirements.txt
+# These require a CUDA-enabled environment (Linux or WSL2 recommended).
+#
+# Install order matters:
+#   1. pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+#   2. pip install -r finetune/requirements_finetune.txt
+
+# Core training stack
+torch>=2.1.0          # CUDA 11.8+ or 12.1+
+transformers>=4.40.0
+trl>=0.8.6            # SFTTrainer
+peft>=0.10.0          # LoRA / PEFT
+accelerate>=0.28.0
+bitsandbytes>=0.43.0  # 4-bit quantisation (QLoRA)
+
+# Dataset loading
+datasets>=2.18.0
+huggingface_hub>=0.22.0
+
+# Evaluation metrics
+scikit-learn>=1.4.0   # F1, confusion matrix
+
+# Optional — experiment tracking
+# wandb>=0.16.0
+
+# Optional — for vllm serving (separate environment recommended)
+# vllm>=0.4.0

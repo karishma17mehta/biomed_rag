@@ -16,3 +16,20 @@ __pycache__/
 .env
 .venv/
 .venv-1/
+
+# Fine-tuning — model weights (large binaries, push to HF Hub instead)
+finetune/lora-adapter/
+finetune/merged-model/
+finetune/gguf/
+finetune/data/
+
+# Common weight file extensions
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.ckpt
+
+# Unsloth / HF cache
+.cache/
+wandb/
