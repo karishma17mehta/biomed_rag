@@ -46,40 +46,38 @@ def build_message(question: str, context_text: str, decision: str, long_answer: 
     }
 
 
-def process_pqa_l(split_name: str) -> list[dict]:
-    """Load the PQA-L labeled fold0 source split."""
-    ds = load_dataset(
-        "bigbio/pubmed_qa",
-        name="pubmed_qa_labeled_fold0_source",
-        split=split_name,
-        trust_remote_code=True,
-    )
+def process_pqa_l(seed: int = 42) -> tuple[list[dict], list[dict]]:
+    """Load PQA-L (1k expert-labeled), return (train_records, test_records) as 80/20 split."""
+    ds = load_dataset("qiaojin/PubMedQA", name="pqa_labeled", split="train")
+
     records = []
     for row in ds:
         ctx = format_context(row["context"]["contexts"])
-        records.append(build_message(row["question"], ctx, row["final_decision"], row["long_answer"]))
-    return records
+        records.append(build_message(
+            row["question"], ctx, row["final_decision"], row["long_answer"]
+        ))
+
+    random.seed(seed)
+    random.shuffle(records)
+    split = int(len(records) * 0.8)
+    return records[:split], records[split:]
 
 
 def process_pqa_a(limit: int, seed: int = 42) -> list[dict]:
     """Load a random sample from PQA-A (artificially labeled, 211k examples)."""
-    ds = load_dataset(
-        "bigbio/pubmed_qa",
-        name="pubmed_qa_artificial_source",
-        split="train",
-        trust_remote_code=True,
-    )
-    # PQA-A only has "yes"/"no" labels (no "maybe") — still valuable for domain adaptation
+    ds = load_dataset("qiaojin/PubMedQA", name="pqa_artificial", split="train")
+
     indices = list(range(len(ds)))
     random.seed(seed)
     random.shuffle(indices)
-    selected = indices[:limit]
 
     records = []
-    for i in selected:
+    for i in indices[:limit]:
         row = ds[i]
         ctx = format_context(row["context"]["contexts"])
-        records.append(build_message(row["question"], ctx, row["final_decision"], row["long_answer"]))
+        records.append(build_message(
+            row["question"], ctx, row["final_decision"], row["long_answer"]
+        ))
     return records
 
 
@@ -104,27 +102,21 @@ def main():
 
     out_dir = Path(__file__).parent / "data"
 
-    print("Loading PQA-L train split...")
-    train_records = process_pqa_l("train")
-    print(f"  PQA-L train: {len(train_records)} examples")
+    print("Loading PQA-L (expert-labeled, 1k)...")
+    train_records, test_records = process_pqa_l(seed=args.seed)
+    print(f"  PQA-L train: {len(train_records)} | test: {len(test_records)}")
 
     if args.pqa_a_limit > 0:
         print(f"Loading {args.pqa_a_limit:,} PQA-A examples...")
         pqa_a = process_pqa_a(args.pqa_a_limit, seed=args.seed)
         train_records.extend(pqa_a)
-
-    random.seed(args.seed)
-    random.shuffle(train_records)
-
-    print("Loading PQA-L test split...")
-    test_records = process_pqa_l("test")
-    print(f"  PQA-L test:  {len(test_records)} examples")
+        random.seed(args.seed)
+        random.shuffle(train_records)
 
     print("\nWriting files...")
     write_jsonl(train_records, out_dir / "train.jsonl")
     write_jsonl(test_records, out_dir / "test.jsonl")
 
-    # Print label distribution for train
     label_counts: dict[str, int] = {}
     for r in train_records:
         ans = r["messages"][2]["content"].split("\n")[0].replace("Answer: ", "").strip()
