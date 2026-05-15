@@ -31,7 +31,7 @@ BASE_MODEL = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit"  # 4-bit quantised base
 MAX_SEQ_LEN = 2048
 LORA_R = 16          # rank — increase to 32/64 for higher quality at memory cost
 LORA_ALPHA = 16      # usually equal to r
-LORA_DROPOUT = 0.05
+LORA_DROPOUT = 0.0   # must be 0 for Unsloth's fast kernel patching
 
 
 def parse_args():
