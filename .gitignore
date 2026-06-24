@@ -16,3 +16,6 @@ __pycache__/
 .env
 .venv/
 .venv-1/
+
+# Claude Code worktrees / local agent state
+.claude/
