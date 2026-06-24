@@ -19,290 +19,172 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Force font size via JavaScript
-st.markdown("""
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.documentElement.style.fontSize = '18px';
-});
-</script>
-""", unsafe_allow_html=True)
-
-# ── CSS ───────────────────────────────────────────────────────────────────────
-
-
+# ── CSS ─────────────────────────────────────────────────────────────────────
+# One font (Inter), one type scale, one theme. No per-element !important soup.
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
-
-:root { font-size: 18px !important; }
-* { box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --bg: #f7f6f3;
+    --bg: #f6f7f9;
     --surface: #ffffff;
-    --border: #e5e3dc;
-    --text-primary: #1a1916;
-    --text-secondary: #6b6860;
-    --text-muted: #9c9a96;
+    --border: #e6e8ec;
+    --text-primary: #1a1d23;
+    --text-secondary: #565b66;
+    --text-muted: #8b909b;
     --accent: #2563eb;
-    --accent-light: #eff6ff;
-    --accent-border: #bfdbfe;
-    --green: #16a34a;
-    --green-light: #f0fdf4;
-    --green-border: #bbf7d0;
+    --accent-light: #eef4ff;
+    --accent-border: #cdddff;
+    --green: #15a34a;
     --orange: #ea580c;
-    --orange-light: #fff7ed;
-    --teal: #0891b2;
-    --teal-light: #ecfeff;
-    --sidebar-bg: #1a1916;
-    --sidebar-border: #2c2a26;
+    --teal: #0e9bb8;
+    --sidebar-bg: #15171c;
+    --sidebar-text: #c3c7cf;
+    --sidebar-muted: #6b7080;
+    --radius: 12px;
 }
 
-html, body, [class*="css"] {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    font-size: 16px;
+/* ---- Base typography: everything inherits one family + size ---- */
+html, body, .stApp, [class*="css"] {
+    font-family: 'Inter', -apple-system, sans-serif;
 }
+.stApp { background: var(--bg); }
+.block-container { padding-top: 2.2rem; max-width: 1080px; }
 
-section[data-testid="stSidebar"] {
-    background: var(--sidebar-bg) !important;
-    border-right: 1px solid var(--sidebar-border);
+/* Kill Streamlit's default top toolbar/footer clutter */
+#MainMenu, header[data-testid="stHeader"], footer { visibility: hidden; }
+
+/* ---- Sidebar ---- */
+section[data-testid="stSidebar"] { background: var(--sidebar-bg); }
+section[data-testid="stSidebar"] * { color: var(--sidebar-text); }
+.sb-brand { font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+.sb-tagline { font-size: 0.8rem; color: var(--sidebar-muted); margin-top: 2px; }
+.sb-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--sidebar-muted); margin: 0 0 0.6rem;
 }
-section[data-testid="stSidebar"] * { color: #d4d0c8 !important; }
+.sb-rule { height: 1px; background: #2a2d35; margin: 1.4rem 0 1.1rem; }
+.sb-row { display: flex; align-items: center; gap: 9px; margin: 8px 0; font-size: 0.9rem; }
+.sb-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.sb-foot { font-size: 0.78rem; color: var(--sidebar-muted); line-height: 1.9; }
 
+/* ---- Header ---- */
 .app-header {
-    background: var(--sidebar-bg);
-    border: 1px solid #2c2a26;
-    border-radius: 16px;
-    padding: 2rem 2.2rem 1.8rem;
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-.app-header::after {
-    content: '🧬';
-    position: absolute;
-    right: 1.5rem; top: 50%;
-    transform: translateY(-50%);
-    font-size: 4rem;
-    opacity: 0.08;
-}
-.app-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.9rem;
-    font-weight: 800;
-    color: #f5f3ee;
-    margin: 0 0 0.3rem 0;
-}
-.app-subtitle { color: #6b6860; font-size: 0.9rem; font-weight: 300; margin: 0; }
-.cancer-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #d4d0c8; font-size: 0.7rem; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px;
-    margin-right: 5px; margin-top: 0.8rem;
-    letter-spacing: 0.5px; text-transform: uppercase;
-}
-
-.user-bubble {
-    background: var(--sidebar-bg); color: #f5f3ee;
-    padding: 1rem 1.4rem;
-    font-size: 1rem;
-    border-radius: 16px 16px 4px 16px;
-    margin: 0.6rem 0 0.6rem 4rem;
-    line-height: 1.6;
-}
-.assistant-bubble {
-    background: var(--surface); color: var(--text-primary);
-    padding: 1.3rem 1.6rem;
-    font-size: 1.05rem;
-    line-height: 1.85;
-    border-radius: 16px 16px 16px 4px;
-    margin: 0.6rem 4rem 0.4rem 0;
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-}
-
-.transparency-panel {
-    background: #fafaf8; border: 1px solid var(--border);
-    border-radius: 10px;
-    margin: 0 4rem 0.8rem 0;
-    font-size: 0.92rem;
-    padding: 1rem 1.2rem;
-}
-.transparency-title {
-    font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.8px;
-    color: var(--text-muted); margin-bottom: 0.5rem;
-}
-.transparency-row { display: flex; align-items: center; gap: 0.5rem; margin: 3px 0; color: var(--text-secondary); }
-.transparency-key { font-weight: 600; color: var(--text-muted); min-width: 80px; font-size: 0.88rem; }
-.tag { display: inline-block; padding: 1px 8px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; margin-right: 3px; }
-.tag-blue  { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
-.tag-green { background: var(--green-light);  color: var(--green);  border: 1px solid var(--green-border); }
-.tag-teal  { background: var(--teal-light);   color: var(--teal);   border: 1px solid #a5f3fc; }
-.tag-orange{ background: var(--orange-light); color: var(--orange); border: 1px solid #fed7aa; }
-.tag-gray  { background: #f5f3ee; color: var(--text-muted); border: 1px solid var(--border); }
-
-.source-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-left: 3px solid var(--accent); border-radius: 10px;
-    padding: 1rem 1.1rem; margin: 0.35rem 0;
-    font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;
+    border-radius: var(--radius); padding: 1.8rem 2rem; margin-bottom: 1.6rem;
 }
-.pubmed-card {
-    background: var(--teal-light); border: 1px solid #a5f3fc;
-    border-left: 3px solid var(--teal); border-radius: 10px;
-    padding: 1rem 1.1rem; margin: 0.35rem 0;
-    font-size: 0.9rem; color: #164e63; line-height: 1.6;
+.app-title { font-size: 1.7rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin: 0; }
+.app-subtitle { font-size: 0.95rem; color: var(--text-secondary); margin: 0.4rem 0 0; }
+.tag-row { margin-top: 1rem; display: flex; gap: 8px; flex-wrap: wrap; }
+.ctag {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 20px;
 }
-.source-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 500; }
-.score-pill {
-    display: inline-block; background: var(--green-light);
-    border: 1px solid var(--green-border); color: var(--green);
-    font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-right: 5px;
-}
-.section-pill {
-    display: inline-block; background: var(--accent-light);
-    border: 1px solid var(--accent-border); color: var(--accent);
-    font-size: 0.68rem; font-weight: 500; padding: 1px 7px; border-radius: 8px; margin-right: 5px;
-}
-.pmid-pill {
-    display: inline-block; background: var(--teal-light);
-    border: 1px solid #a5f3fc; color: var(--teal);
-    font-size: 0.68rem; font-weight: 600; padding: 1px 7px; border-radius: 8px;
-}
+.ctag .sb-dot { width: 8px; height: 8px; }
 
-.metric-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 1.2rem 1.4rem; text-align: center;
-}
-.metric-value {
-    font-family: 'Syne', sans-serif; font-size: 2.4rem;
-    font-weight: 800; color: var(--text-primary); line-height: 1;
-}
-.metric-label {
-    font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;
-    text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
-}
-.metric-delta { font-size: 0.72rem; color: var(--green); font-weight: 600; margin-top: 0.25rem; }
-
-.stTextInput > div > div > input {
-    border-radius: 10px !important; border: 1.5px solid var(--border) !important;
-    background: var(--surface) !important;
-    font-family: 'DM Sans', sans-serif !important; font-size: 0.92rem !important;
-}
-.stTextInput > div > div > input:focus {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.08) !important;
-}
-
-.stButton > button {
-    background: var(--sidebar-bg) !important; color: #f5f3ee !important;
-    border: none !important; border-radius: 10px !important;
-    font-family: 'DM Sans', sans-serif !important; font-weight: 500 !important;
-    font-size: 0.88rem !important; padding: 0.55rem 1.2rem !important;
-    transition: all 0.15s !important;
-}
-.stButton > button:hover { background: #2c2a26 !important; transform: translateY(-1px) !important; }
-
-div[data-testid="column"] .stButton > button {
-    background: var(--surface) !important; color: var(--text-primary) !important;
-    border: 1px solid var(--border) !important;
-    text-align: left !important; width: 100% !important;
-    padding: 0.85rem 1rem !important; border-radius: 10px !important;
-    font-size: 0.93rem !important; height: auto !important;
-    white-space: normal !important; line-height: 1.4 !important;
-}
-div[data-testid="column"] .stButton > button:hover {
-    border-color: var(--accent) !important; background: var(--accent-light) !important;
-    color: var(--accent) !important; transform: none !important;
-}
-
-.divider { height: 1px; background: var(--border); margin: 1rem 0; }
-.section-label {
-    font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.8px;
-    color: var(--text-muted); margin-bottom: 0.6rem;
-}
-
+/* ---- Tabs: make them unmistakably tabs ---- */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 4px; background: #eeece8; padding: 4px; border-radius: 10px;
+    gap: 6px; border-bottom: 1px solid var(--border);
+    margin-bottom: 1.8rem; padding-bottom: 0;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 8px !important; font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.87rem !important; font-weight: 500 !important; color: var(--text-muted) !important;
+    height: auto; padding: 0.7rem 1.3rem; background: transparent;
+    border: none; border-bottom: 2px solid transparent; border-radius: 8px 8px 0 0;
+    font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
 }
+.stTabs [data-baseweb="tab"]:hover { color: var(--text-secondary); background: var(--bg); }
 .stTabs [aria-selected="true"] {
-    background: white !important; color: var(--text-primary) !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    color: var(--accent); border-bottom: 2px solid var(--accent); background: var(--accent-light);
 }
-            
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { display: none; }
 
-/* ── Force font size overrides ── */
-.stApp, .stApp p, .stApp div, .stApp span, .stApp label {
-    font-size: 16px !important;
+/* ---- Section labels ---- */
+.section-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.7rem;
 }
+.divider { height: 1px; background: var(--border); margin: 1.6rem 0; }
 
-/* Chat bubbles - direct override */
-.user-bubble, .assistant-bubble {
-    font-size: 1.05rem !important;
-    line-height: 1.85 !important;
+/* ---- Example query cards (the colored tag sits above each button) ---- */
+.ex-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; margin: 0 0 6px 2px; }
+
+/* ---- Chat bubbles ---- */
+.msg-role { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin: 1rem 0 0.35rem; }
+.user-bubble {
+    background: var(--accent); color: #fff; padding: 0.9rem 1.2rem;
+    border-radius: 14px 14px 4px 14px; font-size: 0.95rem; line-height: 1.6;
+    margin-left: 18%;
 }
-
-/* Example buttons */
-div[data-testid="column"] .stButton > button,
-div[data-testid="column"] .stButton > button * {
-    font-size: 0.95rem !important;
-    line-height: 1.5 !important;
-    padding: 0.9rem 1rem !important;
-}
-
-/* Transparency panel */
-.transparency-panel, .transparency-panel * {
-    font-size: 0.92rem !important;
-}
-.transparency-title { font-size: 0.82rem !important; }
-
-/* Source cards */
-.source-card, .pubmed-card,
-.source-card *, .pubmed-card * {
-    font-size: 0.9rem !important;
+.assistant-bubble {
+    background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+    padding: 1.1rem 1.3rem; border-radius: 14px 14px 14px 4px;
+    font-size: 0.95rem; line-height: 1.75; margin-right: 8%;
 }
 
-/* Section labels */
-.section-label { font-size: 0.82rem !important; }
+/* ---- Transparency panel ---- */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.3rem; margin: 0.7rem 8% 0.7rem 0; }
+.panel-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.7rem; }
+.panel-row { display: flex; align-items: center; gap: 0.7rem; margin: 6px 0; font-size: 0.88rem; }
+.panel-key { font-weight: 600; color: var(--text-muted); min-width: 90px; }
+.chip { display: inline-block; padding: 2px 10px; border-radius: 7px; font-size: 0.78rem; font-weight: 600; margin-right: 4px; }
+.chip-blue  { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); }
+.chip-green { background: #effaf2; color: var(--green); border: 1px solid #c4eccf; }
+.chip-teal  { background: #e9fafd; color: var(--teal); border: 1px solid #bdebf2; }
+.chip-orange{ background: #fff2ea; color: var(--orange); border: 1px solid #ffd6bd; }
+.chip-gray  { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
 
-/* Sidebar text */
-section[data-testid="stSidebar"] div,
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] p {
-    font-size: 0.88rem !important;
+/* ---- Source cards ---- */
+.source-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 0.9rem 1.1rem; margin: 0.4rem 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
+.pubmed-card { background: #f4fcfe; border: 1px solid #bdebf2; border-left: 3px solid var(--teal); border-radius: 10px; padding: 0.9rem 1.1rem; margin: 0.4rem 0; font-size: 0.88rem; color: #0c5566; line-height: 1.6; }
+.source-meta { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 7px; font-size: 0.7rem; font-weight: 600; margin-right: 5px; }
+.pill-score { background: #effaf2; border: 1px solid #c4eccf; color: var(--green); }
+.pill-sec   { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent); }
+.pill-pmid  { background: #e9fafd; border: 1px solid #bdebf2; color: var(--teal); }
+
+/* ---- Metric cards (dashboard) ---- */
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.3rem 1rem; text-align: center; }
+.metric-value { font-size: 2.3rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+.metric-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.metric-delta { font-size: 0.74rem; color: var(--green); font-weight: 600; margin-top: 0.3rem; }
+
+/* ---- Buttons ---- */
+.stButton > button {
+    background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+    border-radius: 10px; font-weight: 500; font-size: 0.9rem; padding: 0.85rem 1rem;
+    text-align: left; width: 100%; white-space: normal; line-height: 1.5; height: 100%;
+    transition: all 0.12s ease;
 }
+.stButton > button:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+.stTextInput > div > div > input { border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.92rem; }
+.stTextInput > div > div > input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 CANCER_COLORS = {
-    "Thyroid_Cancer": "#0891b2",
+    "Thyroid_Cancer": "#0e9bb8",
     "Lung_Cancer":    "#ea580c",
-    "Colon_Cancer":   "#16a34a",
+    "Colon_Cancer":   "#15a34a",
 }
 
 EXAMPLE_QUERIES = [
-    ("Lung Cancer",    "🫁", "What mechanisms contribute to acquired resistance to EGFR inhibitors in lung cancer?"),
-    ("Colon Cancer",   "🫠", "How do KRAS mutations influence response to EGFR-targeted therapy in colorectal cancer?"),
-    ("Thyroid Cancer", "🦋", "What is the role of BRAF mutations in papillary thyroid carcinoma?"),
-    ("Colon Cancer",   "🫠", "Why are microsatellite stable colorectal cancers less responsive to checkpoint blockade?"),
-    ("Lung Cancer",    "🫁", "What clinical evidence exists for MEK inhibitors in KRAS-mutant NSCLC?"),
-    ("Thyroid Cancer", "🦋", "Which immune checkpoints are targeted in thyroid cancer therapies?"),
+    ("Lung Cancer",    "What mechanisms contribute to acquired resistance to EGFR inhibitors in lung cancer?"),
+    ("Colon Cancer",   "How do KRAS mutations influence response to EGFR-targeted therapy in colorectal cancer?"),
+    ("Thyroid Cancer", "What is the role of BRAF mutations in papillary thyroid carcinoma?"),
+    ("Colon Cancer",   "Why are microsatellite stable colorectal cancers less responsive to checkpoint blockade?"),
+    ("Lung Cancer",    "What clinical evidence exists for MEK inhibitors in KRAS-mutant NSCLC?"),
+    ("Thyroid Cancer", "Which immune checkpoints are targeted in thyroid cancer therapies?"),
 ]
 
-RAGAS_CSV   = Path("eval/runs/ragas_results.csv")
-BASELINE    = {"faithfulness": 0.64, "answer_relevancy": 0.57, "context_utilization": 0.47}
+# map a display name ("Lung Cancer") to its color
+NAME_TO_COLOR = {k.replace("_", " "): v for k, v in CANCER_COLORS.items()}
+
+RAGAS_CSV = Path("eval/runs/ragas_results.csv")
+BASELINE  = {"faithfulness": 0.64, "answer_relevancy": 0.57, "context_utilization": 0.47}
 
 
 # ── Lazy loader ───────────────────────────────────────────────────────────────
@@ -313,58 +195,88 @@ def load_agent():
     return run_agent
 
 
+def run_query(question: str):
+    """Run the agent and append a user+assistant message pair to the chat."""
+    st.session_state.messages.append({"role": "user", "content": question})
+    with st.spinner("Searching literature and generating answer…"):
+        try:
+            run_agent = load_agent()
+            result    = run_agent(question)
+            from app.query_router import infer_intent, extract_entities, extract_cancer_type
+            intent      = infer_intent(question)
+            entities    = extract_entities(question)
+            cancer_type = extract_cancer_type(question)
+            st.session_state.messages.append({
+                "role":        "assistant",
+                "content":     result["answer"],
+                "sources":     result["local_chunks"],
+                "pubmed":      result["pubmed_articles"],
+                "used_pubmed": result["used_pubmed"],
+                "reasoning": {
+                    "intent":      intent,
+                    "cancer":      cancer_type.replace("_", " ") if cancer_type else "General",
+                    "entities":    entities[:6],
+                    "used_pubmed": result["used_pubmed"],
+                },
+            })
+        except Exception as e:
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": f"⚠️ Error: {e}\n\nMake sure `OPENAI_API_KEY` is set and the FAISS index exists at `outputs/index_openai/`.",
+                "sources": [], "pubmed": [], "reasoning": None,
+            })
+
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        "<p style='font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;"
-        "color:#f5f3ee;margin:0 0 0.2rem 0'>🧬 BioMed RAG</p>"
-        "<p style='font-size:0.75rem;color:#6b6860;margin:0 0 1rem 0'>Oncology Q&A System</p>",
+        "<div class='sb-brand'>BioMed RAG</div>"
+        "<div class='sb-tagline'>Oncology Q&A System</div>",
         unsafe_allow_html=True,
     )
-    st.markdown("<div style='height:1px;background:#2c2a26;margin:0 0 1rem 0'></div>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#6b6860;margin-bottom:0.5rem'>Cancer Types</p>", unsafe_allow_html=True)
+    st.markdown("<div class='sb-rule'></div>", unsafe_allow_html=True)
 
+    st.markdown("<div class='sb-label'>Cancer Types</div>", unsafe_allow_html=True)
     for ct, color in CANCER_COLORS.items():
         st.markdown(
-            f"<div style='display:flex;align-items:center;gap:8px;margin:5px 0'>"
-            f"<div style='width:8px;height:8px;border-radius:50%;background:{color};flex-shrink:0'></div>"
-            f"<span style='font-size:0.83rem;color:#d4d0c8'>{ct.replace('_',' ')}</span></div>",
+            f"<div class='sb-row'><span class='sb-dot' style='background:{color}'></span>"
+            f"{ct.replace('_',' ')}</div>",
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height:1px;background:#2c2a26;margin:1rem 0'></div>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#6b6860;margin-bottom:0.5rem'>Settings</p>", unsafe_allow_html=True)
-
+    st.markdown("<div class='sb-rule'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='sb-label'>Settings</div>", unsafe_allow_html=True)
     top_k          = st.slider("Top-K chunks", min_value=3, max_value=15, value=8, step=1)
     show_sources   = st.toggle("Show source chunks", value=True)
     show_reasoning = st.toggle("Show query reasoning", value=True)
 
-    st.markdown("<div style='height:1px;background:#2c2a26;margin:1rem 0'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='sb-rule'></div>", unsafe_allow_html=True)
     st.markdown(
-        "<div style='font-size:0.73rem;color:#4a4840;line-height:1.8'>"
-        "Hybrid FAISS + BM25 retrieval<br>Intent routing · Entity reranking<br>"
-        "Cancer-type hard gating<br>LangGraph agent + PubMed fallback<br>Evaluation: RAGAS"
-        "</div>",
+        "<div class='sb-foot'>Hybrid FAISS + BM25 retrieval<br>"
+        "Intent routing · Entity reranking<br>Cancer-type hard gating<br>"
+        "LangGraph agent + PubMed fallback<br>Evaluation: RAGAS</div>",
         unsafe_allow_html=True,
     )
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="app-header">
-    <p class="app-title">Biomedical Research Assistant</p>
-    <p class="app-subtitle">Grounded answers from peer-reviewed oncology literature · Hybrid RAG + live PubMed search</p>
-    <div style="margin-top:0.8rem">
-        <span class="cancer-badge">🫁 Lung Cancer</span>
-        <span class="cancer-badge">🫠 Colon Cancer</span>
-        <span class="cancer-badge">🦋 Thyroid Cancer</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+tag_html = "".join(
+    f"<span class='ctag'><span class='sb-dot' style='background:{c}'></span>{n}</span>"
+    for n, c in NAME_TO_COLOR.items()
+)
+st.markdown(
+    "<div class='app-header'>"
+    "<div class='app-title'>Biomedical Research Assistant</div>"
+    "<div class='app-subtitle'>Grounded answers from peer-reviewed oncology literature · "
+    "Hybrid RAG with live PubMed fallback</div>"
+    f"<div class='tag-row'>{tag_html}</div>"
+    "</div>",
+    unsafe_allow_html=True,
+)
 
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["💬  Research Chat", "📊  Evaluation Dashboard"])
+tab1, tab2 = st.tabs(["Research Chat", "Evaluation Dashboard"])
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -375,44 +287,15 @@ with tab1:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # ── Example query buttons ─────────────────────────────────────────────
-    st.markdown("<div class='section-label'>Try an example query — click to load</div>", unsafe_allow_html=True)
-
+    # ── Example query cards ───────────────────────────────────────────────
+    st.markdown("<div class='section-label'>Try an example query</div>", unsafe_allow_html=True)
     cols = st.columns(3)
-    for idx, (cancer, icon, query) in enumerate(EXAMPLE_QUERIES):
+    for idx, (cancer, query) in enumerate(EXAMPLE_QUERIES):
         with cols[idx % 3]:
-            short = query[:62] + "…" if len(query) > 62 else query
-            btn_label = f"{icon} **{cancer}**\n{short}"
-            if st.button(btn_label, key=f"ex_{idx}"):
-                # Directly add to messages and process — bypass the input box
-                st.session_state.messages.append({"role": "user", "content": query})
-                with st.spinner("Searching literature and generating answer…"):
-                    try:
-                        run_agent = load_agent()
-                        result    = run_agent(query)
-                        from app.query_router import infer_intent, extract_entities, extract_cancer_type
-                        intent      = infer_intent(query)
-                        entities    = extract_entities(query)
-                        cancer_type = extract_cancer_type(query)
-                        st.session_state.messages.append({
-                            "role":        "assistant",
-                            "content":     result["answer"],
-                            "sources":     result["local_chunks"],
-                            "pubmed":      result["pubmed_articles"],
-                            "used_pubmed": result["used_pubmed"],
-                            "reasoning": {
-                                "intent":      intent,
-                                "cancer":      cancer_type.replace("_", " ") if cancer_type else "General",
-                                "entities":    entities[:6],
-                                "used_pubmed": result["used_pubmed"],
-                            },
-                        })
-                    except Exception as e:
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": f"⚠️ Error: {e}",
-                            "sources": [], "pubmed": [], "reasoning": None,
-                        })
+            color = NAME_TO_COLOR.get(cancer, "#8b909b")
+            st.markdown(f"<div class='ex-tag' style='color:{color}'>{cancer.upper()}</div>", unsafe_allow_html=True)
+            if st.button(query, key=f"ex_{idx}"):
+                run_query(query)
                 st.rerun()
 
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
@@ -420,26 +303,28 @@ with tab1:
     # ── Conversation ──────────────────────────────────────────────────────
     for msg in st.session_state.messages:
         if msg["role"] == "user":
-            st.markdown(f"<div class='user-bubble'>🙋 {msg['content']}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='msg-role' style='text-align:right'>You</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='user-bubble'>{msg['content']}</div>", unsafe_allow_html=True)
         else:
+            st.markdown("<div class='msg-role'>Assistant</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='assistant-bubble'>{msg['content']}</div>", unsafe_allow_html=True)
 
             # Transparency panel
             if show_reasoning and msg.get("reasoning"):
                 r = msg["reasoning"]
-                intent_tag  = f"<span class='tag tag-blue'>{r.get('intent','—')}</span>"
-                cancer_tag  = f"<span class='tag tag-orange'>{r.get('cancer','General')}</span>"
-                source_tag  = f"<span class='tag tag-teal'>{'🌐 PubMed + Local' if r.get('used_pubmed') else '🗂 Local Index'}</span>"
-                entity_tags = "".join(f"<span class='tag tag-gray'>{e}</span>" for e in r.get('entities', [])[:6]) \
-                              or "<span class='tag tag-gray'>none detected</span>"
+                intent_chip = f"<span class='chip chip-blue'>{r.get('intent','—')}</span>"
+                cancer_chip = f"<span class='chip chip-orange'>{r.get('cancer','General')}</span>"
+                source_chip = f"<span class='chip chip-teal'>{'PubMed + Local' if r.get('used_pubmed') else 'Local Index'}</span>"
+                entity_chips = "".join(f"<span class='chip chip-gray'>{e}</span>" for e in r.get('entities', [])[:6]) \
+                               or "<span class='chip chip-gray'>none detected</span>"
                 st.markdown(
-                    f"<div class='transparency-panel'>"
-                    f"<div class='transparency-title'>⚙ How this answer was generated</div>"
-                    f"<div class='transparency-row'><span class='transparency-key'>Intent</span>{intent_tag}</div>"
-                    f"<div class='transparency-row'><span class='transparency-key'>Cancer type</span>{cancer_tag}</div>"
-                    f"<div class='transparency-row'><span class='transparency-key'>Source</span>{source_tag}</div>"
-                    f"<div class='transparency-row'><span class='transparency-key'>Entities</span>{entity_tags}</div>"
-                    f"</div>",
+                    "<div class='panel'>"
+                    "<div class='panel-title'>How this answer was generated</div>"
+                    f"<div class='panel-row'><span class='panel-key'>Intent</span>{intent_chip}</div>"
+                    f"<div class='panel-row'><span class='panel-key'>Cancer type</span>{cancer_chip}</div>"
+                    f"<div class='panel-row'><span class='panel-key'>Source</span>{source_chip}</div>"
+                    f"<div class='panel-row'><span class='panel-key'>Entities</span>{entity_chips}</div>"
+                    "</div>",
                     unsafe_allow_html=True,
                 )
 
@@ -448,11 +333,10 @@ with tab1:
                 local_chunks    = msg.get("sources", [])
                 pubmed_articles = msg.get("pubmed", [])
                 total = len(local_chunks) + len(pubmed_articles)
-
                 if total > 0:
-                    lbl = f"📄 {len(local_chunks)} local chunks"
+                    lbl = f"{len(local_chunks)} local chunks"
                     if pubmed_articles:
-                        lbl += f" · 🌐 {len(pubmed_articles)} PubMed abstracts"
+                        lbl += f"  ·  {len(pubmed_articles)} PubMed abstracts"
                     with st.expander(lbl):
                         if local_chunks:
                             st.markdown("<div class='section-label'>Local corpus chunks</div>", unsafe_allow_html=True)
@@ -462,10 +346,10 @@ with tab1:
                                 paper   = src.get("paper_id", "—")
                                 text    = (src.get("text") or "")[:350].replace("\n", " ")
                                 st.markdown(
-                                    f"<div class='source-card'>"
-                                    f"<div class='source-meta'>"
-                                    f"<span class='score-pill'>↑ {score:.3f}</span>"
-                                    f"<span class='section-pill'>{section}</span>&nbsp;{paper}"
+                                    "<div class='source-card'>"
+                                    "<div class='source-meta'>"
+                                    f"<span class='pill pill-score'>↑ {score:.3f}</span>"
+                                    f"<span class='pill pill-sec'>{section}</span>&nbsp;{paper}"
                                     f"</div>{text}…</div>",
                                     unsafe_allow_html=True,
                                 )
@@ -473,13 +357,13 @@ with tab1:
                             st.markdown("<div class='section-label' style='margin-top:0.8rem'>Live PubMed abstracts</div>", unsafe_allow_html=True)
                             for a in pubmed_articles:
                                 st.markdown(
-                                    f"<div class='pubmed-card'>"
-                                    f"<div class='source-meta'>"
-                                    f"<span class='pmid-pill'>PMID {a.get('pmid','?')}</span>&nbsp;{a.get('year','?')}"
-                                    f"</div>"
-                                    f"<strong style='font-size:0.83rem'>{a.get('title','')}</strong><br>"
-                                    f"<span style='font-size:0.8rem;color:#164e63'>{a.get('abstract','')[:300]}…</span>"
-                                    f"</div>",
+                                    "<div class='pubmed-card'>"
+                                    "<div class='source-meta'>"
+                                    f"<span class='pill pill-pmid'>PMID {a.get('pmid','?')}</span>&nbsp;{a.get('year','?')}"
+                                    "</div>"
+                                    f"<strong>{a.get('title','')}</strong><br>"
+                                    f"<span style='color:#0c5566'>{a.get('abstract','')[:300]}…</span>"
+                                    "</div>",
                                     unsafe_allow_html=True,
                                 )
 
@@ -495,45 +379,14 @@ with tab1:
             key="chat_input",
         )
     with col_btn:
-        send = st.button("Ask →", use_container_width=True)
+        send = st.button("Ask", use_container_width=True)
 
     if send and user_input.strip():
-        question = user_input.strip()
-        st.session_state.messages.append({"role": "user", "content": question})
-
-        with st.spinner("Searching literature and generating answer…"):
-            try:
-                run_agent = load_agent()
-                result    = run_agent(question)
-
-                from app.query_router import infer_intent, extract_entities, extract_cancer_type
-                intent      = infer_intent(question)
-                entities    = extract_entities(question)
-                cancer_type = extract_cancer_type(question)
-
-                st.session_state.messages.append({
-                    "role":        "assistant",
-                    "content":     result["answer"],
-                    "sources":     result["local_chunks"],
-                    "pubmed":      result["pubmed_articles"],
-                    "used_pubmed": result["used_pubmed"],
-                    "reasoning": {
-                        "intent":      intent,
-                        "cancer":      cancer_type.replace("_", " ") if cancer_type else "General",
-                        "entities":    entities[:6],
-                        "used_pubmed": result["used_pubmed"],
-                    },
-                })
-            except Exception as e:
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": f"⚠️ Error: {e}\n\nMake sure `OPENAI_API_KEY` is set and the FAISS index exists at `outputs/index_openai/`.",
-                    "sources": [], "pubmed": [], "reasoning": None,
-                })
+        run_query(user_input.strip())
         st.rerun()
 
     if st.session_state.messages:
-        if st.button("🗑 Clear conversation", key="clear"):
+        if st.button("Clear conversation", key="clear"):
             st.session_state.messages = []
             st.rerun()
 
@@ -543,11 +396,8 @@ with tab1:
 # ════════════════════════════════════════════════════════════════════════════
 with tab2:
 
-    st.markdown(
-        "<p style='font-family:Syne,sans-serif;font-size:1.3rem;font-weight:800;margin:0 0 0.2rem 0'>RAGAS Evaluation Results</p>"
-        "<p style='color:#6b6860;font-size:0.88rem;margin:0 0 1.5rem 0'>30 queries · GPT-4o-mini · text-embedding-3-large</p>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<div class='app-title' style='font-size:1.4rem'>RAGAS Evaluation Results</div>", unsafe_allow_html=True)
+    st.markdown("<div class='app-subtitle' style='margin-bottom:1.5rem'>30 queries · GPT-4o-mini · text-embedding-3-large</div>", unsafe_allow_html=True)
 
     if not RAGAS_CSV.exists():
         st.info("No evaluation results found. Run `make eval` to generate results.")
@@ -564,7 +414,7 @@ with tab2:
             for i, col_name in enumerate(score_cols):
                 val      = df[col_name].mean()
                 label    = col_name.replace("_", " ").title()
-                color    = "#16a34a" if val >= 0.7 else "#f59e0b" if val >= 0.5 else "#ef4444"
+                color    = "#15a34a" if val >= 0.7 else "#d97706" if val >= 0.5 else "#dc2626"
                 baseline = BASELINE.get(col_name)
                 delta_html = ""
                 if baseline:
@@ -573,7 +423,7 @@ with tab2:
                     delta_html = f"<div class='metric-delta'>{sign}{pct:.0f}% from baseline</div>"
                 with metric_cols[i]:
                     st.markdown(
-                        f"<div class='metric-card'>"
+                        "<div class='metric-card'>"
                         f"<div class='metric-value' style='color:{color}'>{val:.2f}</div>"
                         f"<div class='metric-label'>{label}</div>{delta_html}</div>",
                         unsafe_allow_html=True,
@@ -582,7 +432,7 @@ with tab2:
             st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
             # ── Charts ────────────────────────────────────────────────────
-            palette = ["#2563eb", "#ea580c", "#0891b2", "#a855f7"]
+            palette = ["#2563eb", "#ea580c", "#0e9bb8", "#a855f7"]
             col_chart1, col_chart2 = st.columns(2)
 
             with col_chart1:
@@ -597,10 +447,11 @@ with tab2:
                         opacity=0.55, line_color=palette[i % len(palette)],
                     ))
                 fig.update_layout(
-                    height=300, margin=dict(l=0,r=0,t=10,b=0),
+                    height=300, margin=dict(l=0, r=0, t=10, b=0),
                     paper_bgcolor="white", plot_bgcolor="white",
-                    font=dict(family="DM Sans", size=11),
-                    yaxis=dict(range=[0,1], gridcolor="#f1f0ed"),
+                    font=dict(family="Inter", size=11),
+                    yaxis=dict(range=[0, 1], gridcolor="#eef0f3"),
+                    showlegend=False,
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -615,7 +466,7 @@ with tab2:
                 fig2 = go.Figure()
                 fig2.add_trace(go.Bar(
                     name="Baseline", x=metrics_display, y=baseline_vals,
-                    marker_color="#e5e3dc", marker_line_width=0,
+                    marker_color="#dfe3e8", marker_line_width=0,
                 ))
                 fig2.add_trace(go.Bar(
                     name="Current", x=metrics_display, y=current_vals,
@@ -623,10 +474,10 @@ with tab2:
                     text=[f"{v:.3f}" for v in current_vals], textposition="outside",
                 ))
                 fig2.update_layout(
-                    barmode="group", height=300, margin=dict(l=0,r=0,t=10,b=0),
+                    barmode="group", height=300, margin=dict(l=0, r=0, t=10, b=0),
                     paper_bgcolor="white", plot_bgcolor="white",
-                    font=dict(family="DM Sans", size=11),
-                    yaxis=dict(range=[0,1.15], gridcolor="#f1f0ed"),
+                    font=dict(family="Inter", size=11),
+                    yaxis=dict(range=[0, 1.15], gridcolor="#eef0f3"),
                     legend=dict(orientation="h", y=-0.15),
                 )
                 st.plotly_chart(fig2, use_container_width=True)
@@ -644,7 +495,7 @@ with tab2:
             use_container_width=True, height=380,
         )
         st.download_button(
-            "⬇️ Download results CSV",
+            "Download results CSV",
             data=df.to_csv(index=False),
             file_name="ragas_results.csv",
             mime="text/csv",
@@ -667,8 +518,8 @@ with tab2:
         ]:
             with col:
                 st.markdown(
-                    f"<div class='metric-card'>"
-                    f"<div class='metric-value' style='font-size:1.8rem'>{val}</div>"
+                    "<div class='metric-card'>"
+                    f"<div class='metric-value' style='font-size:1.7rem'>{val}</div>"
                     f"<div class='metric-label'>{label}</div></div>",
                     unsafe_allow_html=True,
                 )
