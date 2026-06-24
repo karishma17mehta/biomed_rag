@@ -195,6 +195,27 @@ def load_agent():
     return run_agent
 
 
+def friendly_error(e: Exception) -> str:
+    """Turn a raw exception into a calm, user-facing message (no stack traces)."""
+    msg = str(e).lower()
+    if "insufficient_quota" in msg or "exceeded your current quota" in msg:
+        return ("**This live demo is temporarily out of API credit.** It calls the OpenAI API "
+                "for embeddings and answer generation, and the hosted quota is exhausted right now. "
+                "The retrieval pipeline and code are unaffected — please check back later, or run it "
+                "locally with your own `OPENAI_API_KEY` (see the GitHub README).")
+    if "rate limit" in msg or "429" in msg:
+        return ("**Rate limit reached.** Too many requests in a short window — "
+                "wait a few seconds and try again.")
+    if "api key" in msg or "authentication" in msg or "401" in msg or "unauthorized" in msg:
+        return ("**This demo isn't configured with a valid API key right now.** "
+                "To run it yourself, set `OPENAI_API_KEY` and restart (see the GitHub README).")
+    if "faiss" in msg or "index" in msg or "no such file" in msg:
+        return ("**The search index couldn't be loaded.** This is a deployment-side issue, "
+                "not your question — the maintainer has been pointed at it.")
+    return ("**Something went wrong while generating this answer.** "
+            f"It's not your query. Technical detail: `{e}`")
+
+
 def run_query(question: str):
     """Run the agent and append a user+assistant message pair to the chat."""
     st.session_state.messages.append({"role": "user", "content": question})
@@ -222,7 +243,7 @@ def run_query(question: str):
         except Exception as e:
             st.session_state.messages.append({
                 "role": "assistant",
-                "content": f"⚠️ Error: {e}\n\nMake sure `OPENAI_API_KEY` is set and the FAISS index exists at `outputs/index_openai/`.",
+                "content": friendly_error(e),
                 "sources": [], "pubmed": [], "reasoning": None,
             })
 
@@ -286,6 +307,13 @@ with tab1:
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+
+    if not os.environ.get("OPENAI_API_KEY"):
+        st.warning(
+            "This demo needs an OpenAI API key to generate answers and isn't configured with one "
+            "right now. You can still browse the interface and the Evaluation Dashboard. To run it "
+            "fully, set `OPENAI_API_KEY` (see the GitHub README)."
+        )
 
     # ── Example query cards ───────────────────────────────────────────────
     st.markdown("<div class='section-label'>Try an example query</div>", unsafe_allow_html=True)
