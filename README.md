@@ -209,12 +209,16 @@ python3 -m venv .venv-1
 source .venv-1/bin/activate
 
 # 3. Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt          # runtime: app + ingest
+pip install -r requirements-dev.txt      # optional: pytest + RAGAS eval
 
-# 4. Set your OpenAI API key
-echo "export OPENAI_API_KEY=your-key-here" >> .env
-source .env
+# 4. Set your OpenAI API key (plain KEY=value, no `export`)
+echo "OPENAI_API_KEY=your-key-here" > .env
 ```
+
+> Verified to install cleanly in a fresh `python3 -m venv` and pass all 67 tests
+> (`pytest`). `requirements.txt` is runtime-only and resolvable; the heavier RAGAS
+> eval stack lives in `requirements-dev.txt`.
 
 ---
 

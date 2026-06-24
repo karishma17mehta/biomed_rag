@@ -1,0 +1,14 @@
+# Dev / evaluation extras — install on top of the runtime deps:
+#     pip install -r requirements-dev.txt
+#
+# Keeps the heavy eval stack (ragas, datasets) out of the runtime install so the
+# app/Space stays lean and resolvable. The test suite needs only pytest + runtime.
+
+-r requirements.txt
+
+# --- Testing ---
+pytest==8.4.2
+
+# --- RAGAS evaluation pipeline (eval/04-06) ---
+ragas
+datasets
