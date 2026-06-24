@@ -33,3 +33,6 @@ finetune/data/
 # Unsloth / HF cache
 .cache/
 wandb/
+
+# Claude Code worktrees / local agent state
+.claude/

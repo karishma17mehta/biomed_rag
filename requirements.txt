@@ -1,3 +1,7 @@
+# --- App / deployment entrypoints (required by app/streamlit_app.py) ---
+streamlit==1.55.0
+plotly==6.6.0
+# --- everything below is the pinned dependency graph ---
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiosignal==1.4.0

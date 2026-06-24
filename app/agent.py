@@ -28,10 +28,11 @@ from app.retrieve_faiss import retrieve
 from app.query_router import extract_entities, extract_cancer_type
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-LOCAL_SCORE_THRESHOLD = 0.55   # min avg score to trust local results
-LOCAL_MIN_HITS        = 2      # need at least this many local hits above threshold
-PUBMED_MAX_RESULTS    = 6      # articles to fetch from PubMed
-PUBMED_ABSTRACT_CHARS = 1200   # truncate each abstract to this length
+from app.config import CFG
+LOCAL_SCORE_THRESHOLD = CFG["agent"]["local_score_threshold"]
+LOCAL_MIN_HITS        = CFG["agent"]["local_min_hits"]
+PUBMED_MAX_RESULTS    = CFG["agent"]["pubmed_max_results"]
+PUBMED_ABSTRACT_CHARS = CFG["agent"]["pubmed_abstract_chars"]
 
 CANCER_MESH = {
     "Colon_Cancer":   "colorectal neoplasms",

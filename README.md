@@ -1,3 +1,14 @@
+---
+title: BioMed RAG
+emoji: 🧬
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: 1.55.0
+app_file: app/streamlit_app.py
+pinned: false
+---
+
 # 🧬 Biomedical RAG Pipeline
 
 A production-grade Retrieval-Augmented Generation (RAG) system for biomedical research, focused on **Thyroid Cancer**, **Lung Cancer**, and **Colon Cancer**. Built with hybrid dense + sparse retrieval, intent-aware query routing, a LangGraph agent with live PubMed fallback, full RAGAS evaluation infrastructure, and a LoRA fine-tuned open-weight LLM on PubMedQA.
@@ -371,13 +382,52 @@ huggingface-cli upload your-org/pubmedqa-mistral-7b-lora finetune/lora-adapter
 
 ---
 
+## ☁️ Deploy to Hugging Face Spaces
+
+The repo root carries Space metadata in the README front-matter (`sdk: streamlit`,
+`app_file: app/streamlit_app.py`), so it can be pushed to a Streamlit Space directly.
+
+**Runtime files the Space actually needs** (everything else under `outputs/` is
+pipeline intermediate data and should *not* be pushed):
+
+| File | Purpose |
+|------|---------|
+| `outputs/index_openai/faiss.index` | dense vectors (~43 MB → Git LFS) |
+| `outputs/index_openai/bm25.pkl` | sparse index |
+| `outputs/index_openai/meta_tagged_v2.jsonl` | chunk metadata |
+| `outputs/chunks_stats.json` | dashboard corpus stats |
+| `eval/runs/ragas_results.csv` | dashboard eval scores |
+
+```bash
+# 1. Install Git LFS (HF rejects >10 MB files not tracked by LFS)
+brew install git-lfs && git lfs install
+
+# 2. Track the binary index files (a .gitattributes is already committed)
+git lfs track "*.index" "*.pkl"
+
+# 3. Create a Streamlit Space at https://huggingface.co/new-space, then:
+git remote add space https://huggingface.co/spaces/<your-username>/biomed-rag
+git push space main
+
+# 4. In the Space → Settings → Variables and secrets, add:
+#    OPENAI_API_KEY = sk-...   (required for embeddings + answer generation)
+```
+
+> **Note:** the ~250 MB of intermediate ingest artifacts (`clean_papers.*`,
+> `chunks*.jsonl`, `phase1/phase2*`) bloat the Space and aren't used at runtime.
+> Consider a lean deploy branch that keeps only the runtime files above.
+
+---
+
 ## 🚀 Roadmap
 
 - [x] **Phase 1:** Streamlit app — chat interface + RAGAS eval dashboard
 - [x] **Phase 2:** LangGraph agent — local FAISS search + live PubMed search via NCBI Entrez API
 - [x] **Phase 3:** LoRA fine-tune Mistral-7B on PubMedQA + Ollama deployment
-- [ ] **Phase 4:** Deploy to Hugging Face Spaces
-- [ ] **Phase 5:** Host fine-tuned adapter on Hugging Face Hub
+- [x] **Phase 4:** Hugging Face Spaces deploy config (front-matter, LFS, secrets) — see above
+- [ ] **Phase 5:** Push the deploy to a live Hugging Face Space
+- [ ] **Phase 6:** Host fine-tuned adapter on Hugging Face Hub
+- [ ] **Phase 7:** Host dataset on Hugging Face Datasets
 
 ---
 
