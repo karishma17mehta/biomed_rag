@@ -113,26 +113,18 @@ eval/01_run_retrieval.py → eval/04_build_ragas_dataset.py → eval/05_generate
 
 ## 🗂️ Data Sourcing
 
-The raw dataset (`data/biomedical.csv`) is **not included** in this repo due to size (~180MB). The pre-built FAISS index and BM25 index are also excluded.
+The base corpus is the public **[Biomedical Text Publication Classification](https://www.kaggle.com/datasets/falgunipatel19/biomedical-text-publication-classification)** dataset on Kaggle — biomedical publications labeled across three cancer types (**Thyroid, Colon, Lung**), which become the cancer classes used throughout this project. The raw file (`data/biomedical.csv`, ~180 MB) and the pre-built FAISS/BM25 indices are not committed due to size.
 
-The corpus was assembled from PubMed abstracts and full-text articles across three cancer types using the NCBI Entrez API:
+The real work was turning that raw, noisy classification dataset into a clean **retrieval** corpus:
+- **Deduplication** — SHA-1 content-hash dedup; the raw data is heavily duplicated (~7,000 rows → ~2,000 unique).
+- **Filtering** — label-confidence + topic/cancer-site filtering down to **484 high-confidence documents**.
+- **Chunking** — section-aware splitting into **4,061 passages** (see the Architecture pipeline above).
 
-```python
-from Bio import Entrez
-Entrez.email = "your@email.com"
-handle = Entrez.esearch(db="pubmed", term="NSCLC EGFR treatment", retmax=500)
-record = Entrez.read(handle)
-pmids = record["IdList"]
-```
+> ℹ️ **Live PubMed is used at _query time_, not to build the corpus.** When the local index doesn't cover a question, the LangGraph agent falls back to a live search via the **NCBI Entrez (PubMed) API** — see [`app/agent.py`](app/agent.py).
 
-Search terms used:
-- **Lung Cancer:** `NSCLC treatment`, `EGFR lung cancer`, `KRAS lung resistance`, `immunotherapy lung cancer`
-- **Colon Cancer:** `colorectal cancer KRAS`, `CRC BRAF`, `MEK inhibitor colorectal`, `microsatellite instability`
-- **Thyroid Cancer:** `papillary thyroid carcinoma`, `BRAF thyroid`, `lenvatinib thyroid`, `RET thyroid cancer`
-
-To rebuild indices from scratch:
+To rebuild the indices from scratch:
 ```bash
-# Place your biomedical.csv in data/
+# Download biomedical.csv from the Kaggle link above and place it in data/
 make ingest
 ```
 
